@@ -1,13 +1,14 @@
 import { useState } from "react";
 import {Link} from "react-router-dom";
 
-function LoginPage() {
+function SignUpPage() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   function handleSubmit(e) {
-    e.preventDefault(); //disables the submit page refresh
-    console.log("Login Attempt: ", { email, password });
+    e.preventDefault();
+    console.log("Signup attempt: ", { name, email, password });
   }
 
   return (
@@ -67,12 +68,20 @@ function LoginPage() {
           </svg>
 
           <h1 className="text-2xl font-bold text-[#2C2C2C]">
-            Log In to SignBox
+            Create an Account
           </h1>
           <p className="text-[#2C2C2C] opacity-70 text-sm mt-1">
-            Welcome back! Please enter your details.
+            Welcome! Sign up to get started with SignBox.
           </p>
         </div>
+
+        <input 
+        type="text" 
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Full name"
+        className="bg-white text-[#2C2C2C] border border-gray-300 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#853953]"      
+        />
 
         {/* Email Input */}
         <input
@@ -96,20 +105,20 @@ function LoginPage() {
           type="submit"
           className="bg-[#853953] text-[#F3F4F4] font-medium p-2.5 rounded-lg hover:bg-[#2C2C2C] transition duration-200 shadow-md"
         >
-          Sign In
+          Sign Up
         </button>
 
         <p className="text-center text-sm text-[#2C2C2C] mt-2">
-            {/* To add extra space after the sentence */}
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-[#853952] font-bold hover:underline">
-              Sign up
+            {/* To add an extra space after the sentence */}
+            Already have an account?{' '}
+            <Link to="/login" className="text-[#853953] font-bold hover:underline">
+                Log in
             </Link>
         </p>
-
+        
       </form>
     </div>
   );
 }
 
-export default LoginPage;
+export default SignUpPage;
