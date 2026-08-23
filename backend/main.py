@@ -1,7 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from database import engine, Base
+import models
 #application instance
 app = FastAPI()
+
+#looks at every class that inherits from Base (all your models) and issues the equivalent CREATE TABLE statements to Postgres — but only for tables that don't already exist.
+Base.metadata.create_all(bind=engine)
 
 #when someone sends HTTP GET request to URL '/' run the following function
 @app.get("/")

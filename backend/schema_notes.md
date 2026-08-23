@@ -17,3 +17,33 @@
 
 ## 4. Security Considerations
 *   **Passwords:** Plain-text passwords must never be stored in the database. Future iterations will utilize hashing algorithms (like bcrypt) and salting to protect against security vulnerabilities and data leaks.
+
+***FINAL SCHEMA***
+
+users
+  id (PK)
+  email (unique)
+  hashed_password
+  created_at
+
+documents
+  id (PK)
+  title
+  file_path
+  status          (Draft/Pending/Viewed/Signed)
+  owner_id (FK → users.id)
+  created_at
+
+signing_requests
+  id (PK)
+  document_id (FK → documents.id)
+  signer_email
+  token (unique, random string)
+  status          (Pending/Viewed/Signed)
+  created_at
+
+signatures
+  id (PK)
+  signing_request_id (FK → signing_requests.id)
+  image_data       (the signature, as base64 text for MVP simplicity)
+  signed_at
