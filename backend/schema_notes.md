@@ -18,6 +18,7 @@
 ## 4. Security Considerations
 *   **Passwords:** Plain-text passwords must never be stored in the database. Future iterations will utilize hashing algorithms (like bcrypt) and salting to protect against security vulnerabilities and data leaks.
 
+
 ***FINAL SCHEMA***
 
 users

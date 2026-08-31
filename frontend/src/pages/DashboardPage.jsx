@@ -1,33 +1,38 @@
 import Navbar from "../components/Navbar";
 import DocumentCard from "../components/DocumentCard";
+import { useState, useEffect } from "react";
 
-const fakeDocuments = [
-    { id:1, title: "Freelance Contract.pdf", status: 'Draft', uploadedAt: '2 days ago'},
-    { id:2, title: "NDA Agreement.pdf", status: 'Pending', uploadedAt: '5 days ago'},
-    { id:3, title: "Lease Agreement.pdf", status: 'Signed', uploadedAt: '1 week ago'},
-]
+function DashboardPage() {
+  // 1. State and Effect live INSIDE the component that renders the UI
+  const [documents, setdocuments] = useState([]);
 
-function DashboardPage(){
-    return(
-        <div className="min-h-screen bg-[#F3F4F4]">
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/documents") //returns a promise
+      .then((res) => res.json())  //returns a promise 
+      .then((data) => setdocuments(data)) //re-renders the components to reflect the new data 
+      .catch((err) => console.error("Error fetching documents:", err)); //safety net
+  }, []); // important to include [] to avoid infinite fetch loop
 
-            <Navbar/>
+  // 2. The return statement uses the state declared directly above it
+  return (
+    <div className="min-h-screen bg-[#F3F4F4]">
+      <Navbar />
 
-            <main className="max-w-4xl mx-auto mt-10 px-4">
-                <h1 className="text-2xl font-bold text-[#2C2C2C] mb-6">My Documents</h1>
-                <div className="flex flex-col gap-4">
-                    {fakeDocuments.map((doc) => (
-                        <DocumentCard
-                            key={doc.id} //important to provide a key prop every time we render a list in react 
-                            title={doc.title}
-                            status={doc.status}
-                            uploadedAt={doc.uploadedAt}
-                        />
-                    ))}
-                </div>
-            </main>
+      <main className="max-w-4xl mx-auto mt-10 px-4">
+        <h1 className="text-2xl font-bold text-[#2C2C2C] mb-6">My Documents</h1>
+        <div className="flex flex-col gap-4">
+          {documents.map((doc) => (
+            <DocumentCard
+              key={doc.id} // important to include a key while rendering a list using react 
+              title={doc.title}
+              status={doc.status}
+              uploadedAt={doc.created_at}
+            />
+          ))}
         </div>
-    );
+      </main>
+    </div>
+  );
 }
 
 export default DashboardPage;
