@@ -4,7 +4,9 @@ from database import engine, Base, get_db
 from sqlalchemy.orm import Session
 import models
 from fastapi.middleware.cors import CORSMiddleware
-from auth import hash_password, verify_password
+from auth import hash_password, verify_password, create_access_token, decode_access_token
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
 #application instance
 app = FastAPI()
 
@@ -20,6 +22,32 @@ app.add_middleware(
 
 #looks at every class that inherits from Base (all your models) and issues the equivalent CREATE TABLE statements to Postgres — but only for tables that don't already exist.
 Base.metadata.create_all(bind=engine)
+
+# 1. This tells FastAPI to actively look for an "Authorization: Bearer <token>" header on incoming requests.
+security = HTTPBearer()
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    # 2. Extract the raw token string from the request header
+    token = credentials.credentials
+    
+    # 3. Hand the token to our auth.py function to verify the signature and expiration
+    payload = decode_access_token(token)
+    
+    # 4. If the token was tampered with or expired, decode_access_token returns None. Kick them out.
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        
+    # 5. Extract the user ID ("sub") from the decoded payload
+    user_id = payload.get("sub")
+    
+    # 6. Check the database. Just because the token is valid mathematically doesn't 
+    # mean the user hasn't been deleted from our database since they logged in!
+    user = db.query(models.User).filter(models.User.id == int(user_id)).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User no longer exists")
+        
+    # 7. If they pass all checks, hand the actual User database object to the route.
+    return user
 
 #when someone sends HTTP GET request to URL '/' run the following function
 @app.get("/")
@@ -95,5 +123,18 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
     if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
         
-    # 3. Success! (We will replace this with a real JWT token in Day 11)
-    return {"message": "Login successful", "user_id": user.id}
+    token = create_access_token({"sub": str(user.id)})
+
+    # Standard OAuth2 format requires returning the token and its type
+    return {"access_token": token, "token_type": "bearer"}
+
+
+#protected route 
+@app.get("/auth/me")
+def get_me(current_user: models.User = Depends(get_current_user)):
+    return {"id": current_user.id, "email": current_user.email}
+
+
+
+
+

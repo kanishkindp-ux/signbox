@@ -2,12 +2,29 @@ import { useState } from "react";
 import {Link} from "react-router-dom";
 
 function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault(); //disables the submit page refresh
-    console.log("Login Attempt: ", { email, password });
+    const res = await fetch('http://127.0.0.1:8000/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email,password}),
+    });
+
+    if (!res.ok) {
+    // Unpack the exact validation error FastAPI sent back
+    const errorData = await res.json();
+    console.error('Login failed! FastAPI says:', errorData);
+    return;
+  }
+
+    const data = await res.json();
+    // store the token in the browsers presistent storage
+    localStorage.setItem('token', data.access_token);
+    console.log('Logged in, token stored');
+
   }
 
   return (

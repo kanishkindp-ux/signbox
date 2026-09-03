@@ -7,7 +7,11 @@ function DashboardPage() {
   const [documents, setdocuments] = useState([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/documents") //returns a promise
+    const token = localStorage.getItem('token');
+
+    fetch("http://127.0.0.1:8000/documents", {
+        headers: {'Authorization' : `Bearer ${token}`},
+    })
       .then((res) => res.json())  //returns a promise 
       .then((data) => setdocuments(data)) //re-renders the components to reflect the new data 
       .catch((err) => console.error("Error fetching documents:", err)); //safety net
