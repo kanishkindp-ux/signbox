@@ -4,6 +4,7 @@ from database import engine, Base, get_db
 from sqlalchemy.orm import Session
 import models
 from fastapi.middleware.cors import CORSMiddleware
+from auth import hash_password, verify_password
 #application instance
 app = FastAPI()
 
@@ -25,10 +26,6 @@ Base.metadata.create_all(bind=engine)
 def read_root():
     return {"message": "SignBox API running"}
 
-fake_document = [
-    {"id":1, "title": "Freelance Contract.pdf", "status": "Draft"},
-    {"id":2, "title": "NDA Agreement.pdf", "status": "Pending"},
-]
 
 #Fetch all documents 
 @app.get("/documents")
@@ -65,5 +62,38 @@ def create_document(document: DocumentCreate, db: Session = Depends(get_db)):
     db.refresh(new_doc)
     return new_doc
 
+class UserCreate(BaseModel):
+    email: str
+    password: str
 
 
+@app.post("/auth/register")
+def register(user: UserCreate, db: Session = Depends(get_db)):
+    existing_user = db.query(models.User).filter(models.User.email == user.email).first()
+    if(existing_user):
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    new_user = models.User(
+        email = user.email,
+        hashed_password = hash_password(user.password)
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return {"id":new_user.id, "email":new_user.email}
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+@app.post("/auth/login")
+def login(credentials: UserLogin, db: Session = Depends(get_db)):
+    # 1. Look up the single user by email
+    user = db.query(models.User).filter(models.User.email == credentials.email).first()
+    
+    # 2. Check if user doesn't exist OR if the password hash fails verification
+    if not user or not verify_password(credentials.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+    # 3. Success! (We will replace this with a real JWT token in Day 11)
+    return {"message": "Login successful", "user_id": user.id}
