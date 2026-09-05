@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Form
 from pydantic import BaseModel
 from database import engine, Base, get_db
 from sqlalchemy.orm import Session
@@ -6,6 +6,11 @@ import models
 from fastapi.middleware.cors import CORSMiddleware
 from auth import hash_password, verify_password, create_access_token, decode_access_token
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import shutil
+import os
+
+UPLOAD_DIR = "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 #application instance
 app = FastAPI()
@@ -129,11 +134,50 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
     return {"access_token": token, "token_type": "bearer"}
 
 
-#protected route 
+#dummy protected route for practice
 @app.get("/auth/me")
 def get_me(current_user: models.User = Depends(get_current_user)):
     return {"id": current_user.id, "email": current_user.email}
 
+@app.post("/documents/upload")
+def upload_document(
+    title: str = Form(...),
+    # UploadFile is FastAPI's type representing an uploaded file, it give you access to its filename, content type and actual bytes
+    file: UploadFile = File(...),
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    #file type validation - soft check, scope for future improvement
+    if file.content_type != "application/pdf":
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Validation failed: Expected application/pdf, but got '{file.content_type}'"
+        )
+
+    # validate file size -> for our MVP we chose 10 MB
+    contents = file.file.read()
+    if len(contents) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (max 10MB)")
+    
+    # saving the file if no exceptions were raised meaning the file was valid
+
+    file_path = f"{UPLOAD_DIR}/{current_user.id}_{file.filename}"
+    with open(file_path, "wb") as f:
+        f.write(contents)
+
+
+    #creating the database record
+    new_doc = models.Document(
+        title=title,
+        file_path = file_path,
+        owner_id = current_user.id
+    )
+
+    db.add(new_doc)
+    db.commit()
+    db.refresh(new_doc)
+    return new_doc
 
 
 
