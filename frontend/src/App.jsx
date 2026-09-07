@@ -2,6 +2,7 @@ import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignupPage";
 import DashboardPage from "./pages/DashboardPage";
 import UploadPage from "./pages/UploadPage";
+import DocumentDetails from "./pages/DocumentDetails";
 import { BrowserRouter, Routes, Route, Navigate} from 'react-router-dom';
 
 function App(){
@@ -14,6 +15,7 @@ function App(){
         <Route path="/" element={<Navigate to='/login' replace/>}/>
         <Route path="/dashboard" element={<DashboardPage/>}/> 
         <Route path="/UploadPage" element={<UploadPage/>}/>
+        <Route path="/documents/:id" element={<DocumentDetails/>}/>
       </Routes>
     </BrowserRouter> 
   );

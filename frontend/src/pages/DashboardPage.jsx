@@ -27,7 +27,8 @@ function DashboardPage() {
         <div className="flex flex-col gap-4">
           {documents.map((doc) => (
             <DocumentCard
-              key={doc.id} // important to include a key while rendering a list using react 
+              key={doc.id} // important to include a key while rendering a list using react
+              id={doc.id} // EXPLICITLY passed for DocumentCard to use in the <Link> because key is consumed by react internally
               title={doc.title}
               status={doc.status}
               uploadedAt={doc.created_at}

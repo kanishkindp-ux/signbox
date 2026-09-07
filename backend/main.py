@@ -6,6 +6,7 @@ import models
 from fastapi.middleware.cors import CORSMiddleware
 from auth import hash_password, verify_password, create_access_token, decode_access_token
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import FileResponse #FastAPI response type specifically built for returning files efficiently
 import shutil
 import os
 
@@ -64,16 +65,31 @@ def read_root():
 @app.get("/documents")
 def get_document(db: Session = Depends(get_db)): #FastAPI's dependency injection - runs get_db and passes the yielded database session into the function as db
     return db.query(models.Document).all()
-    
 
-#Fetch document by document_id
+
+# 1. THE METADATA ROUTE (Returns JSON for the React UI)
 @app.get("/documents/{document_id}")
-def get_documents(document_id: int, db: Session = Depends(get_db)):
+def get_document_metadata(document_id: int, db: Session = Depends(get_db)):
     doc = db.query(models.Document).filter(models.Document.id == document_id).first()
-
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
     return doc
+
+
+# 2. THE FILE STREAMING ROUTE (Returns the actual PDF for the iframe)
+# TODO: restrict access — owner via JWT, signer via signing token (Day 16)
+@app.get("/documents/{document_id}/file")
+def get_document_file(document_id: int, db: Session = Depends(get_db)):
+    doc = db.query(models.Document).filter(models.Document.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+        
+    return FileResponse(
+        doc.file_path, 
+        media_type="application/pdf", 
+        headers={"Content-Disposition": "inline"} # <-- Forces the browser to embed it
+    )
+
 
 #POST request for new document creation - FastAPI uses Pydantic for checking the incoming JSON to verify the incoming data - data must match the blueprint (class)
 
