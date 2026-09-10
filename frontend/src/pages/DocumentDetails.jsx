@@ -24,22 +24,22 @@ function DocumentDetails(){
     );
     }
 
-    return(
-        <div className="min-h-screen bg-[#F3F4F4] p-8">
-      <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-        <div className="mb-6">
+    return (
+    <div className="min-h-screen bg-[#612D53] p-8 flex justify-center items-start">
+      <div className="w-full max-w-4xl bg-[#F3F4F4] p-8 rounded-xl shadow-2xl flex flex-col gap-5 mt-4">
+        <div className="border-b border-gray-300 pb-4">
           <h1 className="text-3xl font-bold text-[#2C2C2C]">{document.title}</h1>
-          <p className="text-[#853953] font-medium mt-1">Status: {document.status}</p>
+          <p className="text-[#853953] font-bold mt-1">Status: {document.status}</p>
         </div>
         
         <iframe
           src={`http://127.0.0.1:8000/documents/${id}/file?t=${Date.now()}`}
-          className="w-full h-[700px] border-2 border-gray-100 rounded-lg shadow-inner bg-gray-50"
+          className="w-full h-[700px] border border-gray-300 rounded-lg bg-white shadow-sm"
           title="Document PDF"
         />
       </div>
     </div>
-    );
+  );
 }
 
 export default DocumentDetails;
