@@ -173,7 +173,7 @@ def upload_document(
 
     # validate file size -> for our MVP we chose 10 MB
     contents = file.file.read()
-    if len(contents) > 10 * 1024 * 1024:
+    if len(contents) > 10 * 1024 * 1024: #bytes and KBs
         raise HTTPException(status_code=400, detail="File too large (max 10MB)")
     
     # saving the file if no exceptions were raised meaning the file was valid

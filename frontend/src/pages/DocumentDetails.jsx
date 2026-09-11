@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import SignaturePad from '../components/SignaturePad';
 
 function DocumentDetails(){
     const { id } = useParams();
@@ -37,6 +38,8 @@ function DocumentDetails(){
           className="w-full h-[700px] border border-gray-300 rounded-lg bg-white shadow-sm"
           title="Document PDF"
         />
+
+        <SignaturePad/>
       </div>
     </div>
   );
